@@ -284,7 +284,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        message: message,
+                        chatInput: message,
                         timestamp: new Date().toISOString(),
                         type: 'chat'
                     })
@@ -299,7 +299,16 @@
                     if (responseData && responseData.trim()) {
                         try {
                             const jsonResponse = JSON.parse(responseData);
-                            addMessage(jsonResponse.reply || jsonResponse.message || '訊息已收到', 'bot');
+                            // 處理 n8n 的回應格式
+                            if (jsonResponse.output) {
+                                addMessage(jsonResponse.output, 'bot');
+                            } else if (jsonResponse.text) {
+                                addMessage(jsonResponse.text, 'bot');
+                            } else if (jsonResponse.reply || jsonResponse.message) {
+                                addMessage(jsonResponse.reply || jsonResponse.message, 'bot');
+                            } else {
+                                addMessage(responseData, 'bot');
+                            }
                         } catch (e) {
                             addMessage(responseData || '訊息已收到', 'bot');
                         }
@@ -345,7 +354,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        message: 'connection_test',
+                        chatInput: 'connection_test',
                         timestamp: new Date().toISOString(),
                         type: 'ping'
                     })
